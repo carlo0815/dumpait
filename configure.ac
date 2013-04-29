@@ -18,7 +18,7 @@ AC_PROG_CXX
 
 AC_CONFIG_MACRO_DIR([m4])
 
-PKG_CHECK_MODULES(BASE, [libdvbsi++ sdl])
+PKG_CHECK_MODULES(BASE, [libdvbsi++])
 
 AC_CHECK_LIB(pthread, pthread_create)
 PTHREAD_LIBS=-pthread
