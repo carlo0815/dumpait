@@ -1,5 +1,12 @@
-#ifndef __DVB_SPECS_H__
-#define __DVB_SPECS_H__ 1
+/*
+ * filter.h
+ *
+ *  Created on: 2014. 2. 13.
+ *      Author: kos
+ */
+
+#ifndef FILTER_H_
+#define FILTER_H_
 
 #include <stdint.h>
 #include <linux/dvb/dmx.h>
@@ -11,6 +18,22 @@
 #include <dvbsi++/program_association_section.h>
 #include <dvbsi++/event_information_section.h>
 #include <dvbsi++/application_information_section.h>
+#include <dvbsi++/descriptor_tag.h>
+#include <dvbsi++/program_map_section.h>
+#include <dvbsi++/service_description_section.h>
+#include <dvbsi++/network_information_section.h>
+#include <dvbsi++/bouquet_association_section.h>
+#include <dvbsi++/program_association_section.h>
+#include <dvbsi++/event_information_section.h>
+#include <dvbsi++/application_information_section.h>
+#include <dvbsi++/application_profile.h>
+#include <dvbsi++/application_descriptor.h>
+#include <dvbsi++/simple_application_location_descriptor.h>
+#include <dvbsi++/simple_application_boundary_descriptor.h>
+#include <dvbsi++/transport_protocol_descriptor.h>
+#include <dvbsi++/application_name_descriptor.h>
+#include <dvbsi++/simple_application_boundary_descriptor.h>
+//------------------------------------------------------------------------
 
 struct eDVBSectionFilterMask
 {
@@ -23,6 +46,7 @@ struct eDVBSectionFilterMask
 	};
 	int flags;
 };
+//------------------------------------------------------------------------
 
 struct eDVBTableSpec
 {
@@ -48,6 +72,7 @@ struct eDVBTableSpec
 	};
 	int flags;
 };
+//------------------------------------------------------------------------
 
 struct eDVBDSMCCDLDataSpec
 {
@@ -67,6 +92,7 @@ public:
 		return m_spec;
 	}
 };
+//------------------------------------------------------------------------
 
 struct eDVBPMTSpec
 {
@@ -78,8 +104,8 @@ public:
 		m_spec.tid     = ProgramMapSection::TID;
 		m_spec.tidext  = sid;
 		m_spec.timeout = timeout; // ProgramMapSection::TIMEOUT;
-		m_spec.flags   = eDVBTableSpec::tfAnyVersion | 
-			eDVBTableSpec::tfHaveTID | eDVBTableSpec::tfHaveTIDExt | 
+		m_spec.flags   = eDVBTableSpec::tfAnyVersion |
+			eDVBTableSpec::tfHaveTID | eDVBTableSpec::tfHaveTIDExt |
 			eDVBTableSpec::tfCheckCRC | eDVBTableSpec::tfHaveTimeout;
 	}
 	operator eDVBTableSpec &()
@@ -87,6 +113,7 @@ public:
 		return m_spec;
 	}
 };
+//------------------------------------------------------------------------
 
 struct eDVBPATSpec
 {
@@ -106,6 +133,7 @@ public:
 		return m_spec;
 	}
 };
+//------------------------------------------------------------------------
 
 struct eDVBAITSpec
 {
@@ -125,6 +153,6 @@ public:
 		return m_spec;
 	}
 };
+//------------------------------------------------------------------------
 
-#endif /*__DVB_SPECS_H__*/
-
+#endif /* FILTER_H_ */

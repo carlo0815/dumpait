@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 #AC_PREREQ([2.69])
-AC_INIT([dumpait], [0.0.1], [oskwon@marusys.com])
-AM_INIT_AUTOMAKE([dumpait], [0.0.1])
+AC_INIT([dumpait], [2.2.0], [kos@dev3])
+AM_INIT_AUTOMAKE([dumpait], [2.2.0])
 
 #AC_CONFIG_SRCDIR([main.cpp])
 AC_CONFIG_HEADERS([config.h])
@@ -19,10 +19,6 @@ AC_PROG_CXX
 AC_CONFIG_MACRO_DIR([m4])
 
 PKG_CHECK_MODULES(BASE, [libdvbsi++])
-
-AC_CHECK_LIB(pthread, pthread_create)
-PTHREAD_LIBS=-pthread
-AC_SUBST(PTHREAD_LIBS)
 
 # Checks for libraries.
 AC_SUBST(PLATFORM)

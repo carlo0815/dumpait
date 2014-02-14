@@ -1,107 +1,197 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <getopt.h> 
+#include <string.h>
+#include <getopt.h>
 
-#include "klog.h"
-#include "kutils.h"
-#include "define.h"
-#include "dvb_scanner.h"
+#include "log.h"
+#include "demux.h"
+#include "filter.h"
+#include "scanner.h"
 
-#define usage() { printf("Usage: dumpait --demux={HEXA} --pmtid={HEXA} --serviceid={HEXA}\n\n"); }
+#include <string>
 
-static int checkBox(void)
+using namespace std;
+//------------------------------------------------------------------------
+
+#define PV "2.2"
+#define usage(PN)   { \
+	printf("Usage: %s [OPTIONS]\n"\
+	"  Version %s\n"\
+	"      --demux={HEXA}\n"\
+	"      --pmtid={HEXA}\n"\
+	"      --serviceid={HEXA}\n"\
+	"      --help\n"\
+	"  ex> %s --demux=0 --pmtid=1b3b --serviceid=9a7b\n"\
+	"\n", PN, PV, PN); exit(0);\
+	};
+//------------------------------------------------------------------------
+
+bool verify();
+
+int htoi(char *str);
+bool is_hex_str(char* str);
+//------------------------------------------------------------------------
+
+int main(int argc, char *argv[])
 {
-	int  nn, fd = 0;
-	char nm[32] = {0};
-
-	nn = ((fd=open("/proc/stb/info/vumodel", O_RDONLY)) >= 0) ? read(fd, nm, 32) : 0;
-	if(fd >= 0) close(fd);
-	return ((strncmp(nm, "duo", 3) == 0) || (strncmp(nm, "solo", 4) == 0) || (strncmp(nm, "uno", 3) == 0) || (strncmp(nm, "ultimo", 6) == 0));
-}
-
-/* ./dumpait --demux=0 --pmtid=13ec --serviceid=283d */
-int main(int argc, char** argv)
-{
-	int option	= 0;
-
-	int demuxid	= -1;
-	int pmtid	= -1;
-	int serviceid	= -1;
-
-	if(!checkBox()) {
-		return -1;
+	if (!verify()) {
+		exit(0);
 	}
 
-	if(argc < 4) {
-		usage();
-		return -1;
-	}
+	int param_dmxid   = -1;
+	int param_pmtid = -1;
+	int param_sid   = -1;
 
-	/* Parse Arguments */
-	static struct option long_options[] = { 
-		{"help",	0, NULL, 'h'}, 
-		{"demux",	1, NULL, 'd'}, 
-		{"pmtid",	1, NULL, 'p'}, 
-		{"serviceid",	1, NULL, 's'}, 
-		{0, 0, 0, 0} 
-	}; 
+	static struct option long_options[] = {
+		{"help",	0, NULL, 'h'},
+		{"demux",	1, NULL, 'd'},
+		{"pmtid",	1, NULL, 'p'},
+		{"serviceid",	1, NULL, 's'},
+		{0, 0, 0, 0}
+	};
 
-	if(init_log(NULL) == FALSE) {
-		perror("init log fail!!");
-		return -1;
-	}
-
+	int opt = 0;
 	do {
-		/* ":" -> need value behind option. */
-		option = getopt_long(argc, argv, "d:p:s:h", long_options, 0);
-		switch (option) {
-		case 'd':
-			if(is_hex_str(optarg))
-				demuxid = htoi(optarg);
-			KDBG("D : %s, %X", optarg, demuxid);
-			break;
-		case 'p': 
-			if(is_hex_str(optarg))
-				pmtid = htoi(optarg);
-			KDBG("P : %s, %X", optarg, pmtid);
-			break; 
-		case 's':
-			if(is_hex_str(optarg))
-				serviceid = htoi(optarg);
-			KDBG("S : %s, %X", optarg, serviceid);
-			break;
-		case 'h':
-			clear_log();
-			return 0;
+		opt = getopt_long(argc, argv, "d:p:s:h", long_options, 0);
+		switch (opt) {
+		case 'd': if(is_hex_str(optarg)) param_dmxid = htoi(optarg); break;
+		case 'p': if(is_hex_str(optarg)) param_pmtid = htoi(optarg); break;
+		case 's': if(is_hex_str(optarg)) param_sid   = htoi(optarg); break;
+		case 'h': usage(argv[0]); break;
 		}
-	} while(option != -1);
+	} while(opt != -1);
 
-	KDBG("DemuxId : %d, PmtId : %X, ServiceId : %X", demuxid, pmtid, serviceid);
+	if (param_dmxid < 0 || param_pmtid < 0 || param_sid < 0) {
+		usage(argv[0]);
+	}
 
-	if(demuxid < 0) {
-		KERR("DemuxId is not seted!!");
-		clear_log();
-		return -1;
-	}
-#if 1
-	if(pmtid < 0) {
-		KERR("PmtId is not seted!!");
-		clear_log();
-		return -1;
-	}
-	if(serviceid < 0) {
-		KERR("ServiceId is not seted!!");
-		clear_log();
-		return -1;
-	}
-#endif
-	eAITScanner().doScan(demuxid, pmtid, serviceid);
+	char demux_path[256] = {0};
+	sprintf(demux_path, "/dev/dvb/adapter0/demux%d", param_dmxid);
 
-	clear_log();
+	eDemux demux;
+	if (demux.Open(demux_path) == false) {
+		exit(1);
+	}
+
+	Scan(demux, param_pmtid, param_sid);
+
 	return 0;
 }
 
+static const char* support_models[] = {
+	"duo", "solo", "uno", "ultimo", "solo2", "duo2", "solo15", 0
+};
+//------------------------------------------------------------------------
+
+std::string trim(std::string s)
+{
+	std::string r = s.erase(s.find_last_not_of(" \t\n\v\r") + 1);
+	return r.erase(0, r.find_first_not_of(" \t\n\v\r"));
+}
+//------------------------------------------------------------------------
+
+bool verify()
+{
+	int modelfd = ::open("/proc/stb/info/vumodel", O_RDONLY);
+	if (modelfd < 0) {
+		return false;
+	}
+
+	char buffer[16] = {0};
+	if (::read(modelfd, buffer, 16) <= 0) {
+		::close(modelfd);
+		return false;
+	}
+	::close(modelfd);
+
+	std::string modelname = trim(buffer);
+	for (int i = 0; support_models[i] != 0; ++i) {
+		if (::strcmp(support_models[i], modelname.c_str()) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+//------------------------------------------------------------------------
+
+bool is_hex_str(char* str)
+{
+	char* temp = str;
+	while(*temp) {
+		switch(*temp)
+		{
+		case '0': break;
+		case '1': break;
+		case '2': break;
+		case '3': break;
+		case '4': break;
+		case '5': break;
+		case '6': break;
+		case '7': break;
+		case '8': break;
+		case '9': break;
+		case 'a': break;
+		case 'b': break;
+		case 'c': break;
+		case 'd': break;
+		case 'e': break;
+		case 'f': break;
+		case 'A': break;
+		case 'B': break;
+		case 'C': break;
+		case 'D': break;
+		case 'E': break;
+		case 'F': break;
+		default:  return false;
+		}
+		++temp;
+	}
+	return true;
+}
+//------------------------------------------------------------------------
+
+int htoi(char *str)
+{
+	int   degit	= 0;
+	char* hexa	= str;
+
+	while(*hexa) {
+		degit *= 16;
+		switch(*hexa)
+		{
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			degit += *hexa - '0';
+			break;
+		case 'a':
+		case 'b':
+		case 'c':
+		case 'd':
+		case 'e':
+		case 'f':
+			degit += *hexa - 'a' + 10;
+			break;
+		case 'A':
+		case 'B':
+		case 'C':
+		case 'D':
+		case 'E':
+		case 'F':
+			degit += *hexa - 'A' + 10;
+			break;
+		}
+		++hexa;
+	}
+	return degit;
+}
+//------------------------------------------------------------------------
