@@ -443,7 +443,7 @@ void SaveAITInfo(AITInfoVector &ait_infos, FILE* fp)
 		fprintf(fp, "       <name>%s</name>\n", info->name.c_str());
 		fprintf(fp, "       <url>%s</url>\n", info->url.c_str());
 		fprintf(fp, "       <profile>%d</profile>\n", info->profile_code);
-		fprintf(fp, "<application>\n");
+		fprintf(fp, "</application>\n");
 	}
 	fprintf(fp, "</applications>\n");
 	fflush(fp);
