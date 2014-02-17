@@ -219,6 +219,14 @@ int ScanAIT(eDemux& demux, long aitid, ApplicationInformationSectionMultiVector 
 #else
 					sprintf(filename, "/tmp/ait.%d", orgId);
 #endif /*SUPPORT_MULTIPLE_SECTION*/
+					if (buffer[6] > 0) {
+						DA_DEBUG("section_number %d > 0", buffer[6]);
+						buffer[6] = 0;
+					}
+					if (buffer[7] > buffer[6]) {
+						DA_DEBUG("last_section_number %d > section_number %d", buffer[7], buffer[6]);
+						buffer[7] = buffer[6];
+					}
 					int fd = ::open(filename, O_RDWR | O_CREAT | O_TRUNC);
 					if(fd >= 0) {
 						::write(fd, buffer, len);
