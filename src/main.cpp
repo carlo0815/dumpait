@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 }
 
 static const char* support_models[] = {
-	"duo", "solo", "uno", "ultimo", "solo2", "duo2", "solo15", 0
+	"duo", "solo", "uno", "ultimo", "solo2", "duo2", "solose", 0
 };
 //------------------------------------------------------------------------
 
