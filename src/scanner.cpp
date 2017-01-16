@@ -113,7 +113,7 @@ int ScanPAT(eDemux& demux, ProgramAssociationSectionList &pat_list, char* buffer
 	ufds.fd = demux.GetFd();
 	ufds.events = POLLIN;
 
-	for(int try_count = 0; ; try_count++) {
+	for(unsigned int try_count = 0; ; try_count++) {
 		if (poll(&ufds, 1, SCAN_TIMEOUT) <= 0) {
 			return 0;
 		}
@@ -150,7 +150,7 @@ int ScanPMT(eDemux& demux, long pmtid, long sid, ProgramMapSectionList &pmt_list
 	ufds.fd = demux.GetFd();
 	ufds.events = POLLIN;
 
-	for(int try_count = 0; ; try_count++) {
+	for(unsigned int try_count = 0; ; try_count++) {
 		if (poll(&ufds, 1, SCAN_TIMEOUT) <= 0) {
 			return 0;
 		}
@@ -262,7 +262,7 @@ void ParseAIT(ApplicationInformationSectionMultiVector &ait_vector, AITInfoVecto
 	bool save_ait = false;
 	bool already_exist = false;
 
-	std:string applicaionName = "", hbbtvUrl = "", boundaryExtension = "";
+	std::string applicaionName = "", hbbtvUrl = "", boundaryExtension = "";
 	int profileCode = 0, orgId = 0, appId = 0, controlCode = 0, profileVersion = 0;
 
 	ApplicationInformationSectionMultiVector::iterator ait_top_iter = ait_vector.begin();
