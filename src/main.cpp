@@ -12,6 +12,10 @@
 
 #include <string>
 
+#ifdef USE_VERIFY_MODEL
+#undef USE_VERIFY_MODEL
+#endif
+
 using namespace std;
 //------------------------------------------------------------------------
 
@@ -36,9 +40,11 @@ bool is_hex_str(char* str);
 
 int main(int argc, char *argv[])
 {
+#ifdef USE_VERIFY_MODEL
 	if (!verify()) {
 		exit(0);
 	}
+#endif
 
 	int param_dmxid   = -1;
 	int param_pmtid = -1;
